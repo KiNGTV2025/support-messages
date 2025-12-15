@@ -1,223 +1,43 @@
-<!DOCTYPE html><html lang="tr">
+<!DOCTYPE html>
+<html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mesajlaşma Sistemi</title>
-  <style>
-    :root {
-      --bg: #0f172a;
-      --panel: #111827;
-      --accent: #38bdf8;
-      --text: #e5e7eb;
-      --muted: #9ca3af;
-    }
-    * { box-sizing: border-box; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-    body {
-      margin: 0;
-      background: linear-gradient(135deg, #020617, #020617 40%, #020617);
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-    .app {
-      width: min(720px, 95vw);
-      background: var(--panel);
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.6);
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      overflow: hidden;
-    }
-    header {
-      padding: 16px 20px;
-      border-bottom: 1px solid #1f2933;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    header h1 {
-      font-size: 18px;
-      margin: 0;
-      font-weight: 600;
-    }
-    header span {
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .messages {
-      padding: 20px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .msg {
-      max-width: 80%;
-      padding: 12px 14px;
-      border-radius: 14px;
-      background: #020617;
-      border: 1px solid #1f2937;
-    }
-    .msg.me {
-      align-self: flex-end;
-      background: rgba(56,189,248,.15);
-      border-color: rgba(56,189,248,.4);
-    }
-    footer {
-      border-top: 1px solid #1f2937;
-      padding: 14px;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-    }
-    textarea {
-      resize: none;
-      height: 56px;
-      padding: 12px;
-      border-radius: 12px;
-      border: 1px solid #1f2937;
-      background: #020617;
-      color: var(--text);
-      outline: none;
-    }
-    textarea:focus { border-color: var(--accent); }
-    button {
-      padding: 0 18px;
-      border-radius: 12px;
-      border: none;
-      background: var(--accent);
-      color: #020617;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    button:focus { outline: 3px solid rgba(56,189,248,.6); }
-  </style>
+  <meta charset="UTF-8">
+  <title>Destek Mesajı</title>
 </head>
 <body>
-  <div class="app" tabindex="0" id="app">
-    <header>
-      <h1>Mesajlaşma</h1>
-      <span>⌨ / 🎮 Kumanda Navigasyonu</span>
-    </header><div class="messages" id="messages"></div>
 
-<footer>
-  <textarea id="input" placeholder="Mesajınızı yazın… (Enter = Gönder)" tabindex="1"></textarea>
-  <button id="send" tabindex="2">Gönder</button>
-</footer>
+<h2>Destek Formu</h2>
 
-<!-- KVKK Onay -->
-<div style="padding:12px 16px; font-size:12px; color:#9ca3af; border-top:1px solid #1f2937;">
-  <label style="display:flex; gap:8px; align-items:flex-start;">
-    <input type="checkbox" id="kvkk" />
-    <span>KVKK kapsamında kişisel verilerimin destek amacıyla işlenmesini kabul ediyorum.</span>
-  </label>
-</div>
+<textarea id="msg" placeholder="Mesajınızı yazın" rows="5" cols="30"></textarea>
+<br><br>
+<button onclick="send()">Gönder</button>
 
-<!-- Teşekkür Mesajı -->
-<div id="thanks" style="display:none; padding:20px; text-align:center; border-top:1px solid #1f2937; background:#020617;">
-  <strong>Teşekkürler 🙏</strong>
-  <p style="margin:8px 0 0; color:#9ca3af;">Talep numaranız: <span id="ticket"></span><br/>En kısa sürede dönüş yapılacaktır.</p>
-</div>
+<script>
+async function send() {
+  const text = document.getElementById("msg").value;
+  if (!text) {
+    alert("Mesaj yaz");
+    return;
+  }
 
-  </div>  <script>
-    const messagesEl = document.getElementById('messages');
-    const inputEl = document.getElementById('input');
-    const sendBtn = document.getElementById('send');
-
-    function addMessage(text, me = true) {
-      const div = document.createElement('div');
-      div.className = 'msg' + (me ? ' me' : '');
-      div.textContent = text;
-      messagesEl.appendChild(div);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
-
-    async function sendMessage() {
-      const text = inputEl.value.trim();
-      const kvkk = document.getElementById('kvkk');
-      if (!kvkk.checked) {
-        alert('Devam etmek için KVKK onayını kabul etmelisiniz');
-        return;
-      }
-      if (!text) return;
-
-      addMessage(text, true);
-      inputEl.value = '';
-
-      let label = 'support';
-      if (/acil|urgent|hemen/i.test(text)) label = 'urgent';
-      if (/hata|bug|error/i.test(text)) label = 'bug';
-
-      try {
-        const res = await fetch('/api/contact', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: text,
-            label,
-            meta: {
-              userAgent: navigator.userAgent,
-              language: navigator.language,
-              screen: `${window.screen.width}x${window.screen.height}`,
-              time: new Date().toISOString()
-            }
-          })
-        });
-
-        const data = await res.json();
-        document.getElementById('ticket').textContent = '#' + data.issue;
-        document.getElementById('thanks').style.display = 'block';
-      } catch (e) {
-        console.error('Gönderim hatası', e);
-      }
-    }
-          })
-        });
-
-        document.getElementById('thanks').style.display = 'block';
-      } catch (e) {
-        console.error('Gönderim hatası', e);
-      }
-    }
-        })
-        });
-      } catch (e) {
-        console.error('Gönderim hatası', e);
-      }
-    }
-
-    sendBtn.addEventListener('click', sendMessage);
-
-    inputEl.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
+  try {
+    const r = await fetch("/api/contact", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: text
+      })
     });
 
-    // Klavye / Kumanda Navigasyonu
-    document.addEventListener('keydown', e => {
-      if (e.key === 'ArrowDown') inputEl.focus();
-      if (e.key === 'ArrowUp') sendBtn.focus();
-    });
+    const d = await r.json();
+    alert("Gönderildi! Issue #" + d.issue);
+  } catch (e) {
+    alert("Hata: " + e.message);
+  }
+}
+</script>
 
-    // Basit Gamepad desteği
-    let gpIndex = null;
-    window.addEventListener('gamepadconnected', e => gpIndex = e.gamepad.index);
-
-    function pollGamepad() {
-      if (gpIndex !== null) {
-        const gp = navigator.getGamepads()[gpIndex];
-        if (gp) {
-          if (gp.buttons[0].pressed) sendMessage(); // A tuşu
-          if (gp.buttons[12].pressed) inputEl.focus(); // D-Pad Up
-          if (gp.buttons[13].pressed) sendBtn.focus(); // D-Pad Down
-        }
-      }
-      requestAnimationFrame(pollGamepad);
-    }
-    pollGamepad();
-  </script></body>
-  </html>
+</body>
+</html>
