@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   const { message, label, meta } = req.body;
 
   const r = await fetch(
-    'https://api.github.com/repos/GITHUB_KULLANICI_ADI/support-messages/issues',
+    'https://api.github.com/repos/KiNGTV2025/support-messages/issues',
     {
       method: 'POST',
       headers: {
