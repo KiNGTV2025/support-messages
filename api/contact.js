@@ -1,9 +1,11 @@
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
+  if (req.method !== 'POST') {
+    return res.status(405).send('Method Not Allowed');
+  }
 
   const { message, label, meta } = req.body;
 
-  const r = await fetch(
+  const response = await fetch(
     'https://api.github.com/repos/KiNGTV2025/support-messages/issues',
     {
       method: 'POST',
@@ -18,13 +20,13 @@ Mesaj:
 ${message}
 
 Cihaz:
-${meta.userAgent}
+${meta?.userAgent || 'bilinmiyor'}
         `,
-        labels: [label]
+        labels: [label || 'support']
       })
     }
   );
 
-  const d = await r.json();
-  res.status(200).json({ issue: d.number });
+  const data = await response.json();
+  return res.status(200).json({ issue: data.number });
 }
